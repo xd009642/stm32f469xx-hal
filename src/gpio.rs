@@ -68,16 +68,16 @@ pub struct AF14;
 pub struct AF15;
 
 macro_rules! gpio_def {
-    ($GPIO:ident, $gpio:ident, $PX:ident, [
+    ($GPIO:ident, $gpio:ident, $gpio_ns:ident, $PX:ident, [
      $(($PXi:ident, $pxi:ident, $i:expr, $AFR:ident),)+]) => {
         pub mod $gpio {
-
+            use stm32f469xx::{$GPIO, $gpio_ns};
 
         }
     };
 }
 
-gpio_def!(GPIOA, gpioa, PA, [
+gpio_def!(GPIOA, gpioa, gpioa, PA, [
           (PA0, pa0, 0, AFRL),
           (PA1, pa1, 1, AFRL),
           (PA2, pa2, 2, AFRL),
@@ -96,7 +96,7 @@ gpio_def!(GPIOA, gpioa, PA, [
           (PA15, pa15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOB, gpiob, PB, [
+gpio_def!(GPIOB, gpiob, gpiob, PB, [
           (PB0, pb0, 0, AFRL),
           (PB1, pb1, 1, AFRL),
           (PB2, pb2, 2, AFRL),
@@ -115,7 +115,7 @@ gpio_def!(GPIOB, gpiob, PB, [
           (PB15, pb15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOC, gpioc, PC, [
+gpio_def!(GPIOC, gpioc, gpiok, PC, [
           (PC0, pc0, 0, AFRL),
           (PC1, pc1, 1, AFRL),
           (PC2, pc2, 2, AFRL),
@@ -134,7 +134,7 @@ gpio_def!(GPIOC, gpioc, PC, [
           (PC15, pc15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOD, gpiod, PD, [
+gpio_def!(GPIOD, gpiod, gpiok, PD, [
           (PD0, pd0, 0, AFRL),
           (PD1, pd1, 1, AFRL),
           (PD2, pd2, 2, AFRL),
@@ -153,7 +153,7 @@ gpio_def!(GPIOD, gpiod, PD, [
           (PD15, pd15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOE, gpioe, PE, [
+gpio_def!(GPIOE, gpioe, gpiok, PE, [
           (PE0, pe0, 0, AFRL),
           (PE1, pe1, 1, AFRL),
           (PE2, pe2, 2, AFRL),
@@ -172,7 +172,7 @@ gpio_def!(GPIOE, gpioe, PE, [
           (PE15, pe15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOF, gpiof, PF, [
+gpio_def!(GPIOF, gpiof, gpiok, PF, [
           (PF0, pf0, 0, AFRL),
           (PF1, pf1, 1, AFRL),
           (PF2, pf2, 2, AFRL),
@@ -191,7 +191,7 @@ gpio_def!(GPIOF, gpiof, PF, [
           (PF15, pf15, 15, AFRH),
 ]);
 
-gpio_def!(GPIOG, gpiog, PG, [
+gpio_def!(GPIOG, gpiog, gpiok, PG, [
           (PG0, pg0, 0, AFRL),
           (PG1, pg1, 1, AFRL),
           (PG2, pg2, 2, AFRL),
@@ -210,7 +210,7 @@ gpio_def!(GPIOG, gpiog, PG, [
           (PG15, pg15, 15, AFRH),
 ]); 
 
-gpio_def!(GPIOH, gpioh, PH, [
+gpio_def!(GPIOH, gpioh, gpiok, PH, [
           (PH0, ph0, 0, AFRL),
           (PH1, ph1, 1, AFRL),
           (PH2, ph2, 2, AFRL),
@@ -229,7 +229,7 @@ gpio_def!(GPIOH, gpioh, PH, [
           (PH15, ph15, 15, AFRH),
 ]); 
 
-gpio_def!(GPIOI, gpioi, PI, [
+gpio_def!(GPIOI, gpioi, gpiok, PI, [
           (PI0, pi0, 0, AFRL),
           (PI1, pi1, 1, AFRL),
           (PI2, pi2, 2, AFRL),
@@ -248,7 +248,7 @@ gpio_def!(GPIOI, gpioi, PI, [
           (PI15, pi15, 15, AFRH),
 ]); 
 
-gpio_def!(GPIOJ, gpioj, PJ, [
+gpio_def!(GPIOJ, gpioj, gpiok, PJ, [
           (PJ0, pj0, 0, AFRL),
           (PJ1, pj1, 1, AFRL),
           (PJ2, pj2, 2, AFRL),
@@ -267,7 +267,7 @@ gpio_def!(GPIOJ, gpioj, PJ, [
           (PJ15, pj15, 15, AFRH),
 ]); 
 
-gpio_def!(GPIOK, gpiok, PK, [
+gpio_def!(GPIOK, gpiok, gpiok, PK, [
           (PK0, pk0, 0, AFRL),
           (PK1, pk1, 1, AFRL),
           (PK2, pk2, 2, AFRL),
