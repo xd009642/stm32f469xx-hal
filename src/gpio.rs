@@ -1,5 +1,12 @@
-use stm32f469xx::*;
 use core::marker::PhantomData;
+use stm32f469xx::*;
+
+/// provides access to gpio pin
+pub trait GpioInterface {
+    type Parts;
+
+    fn split(self) -> Self::Parts;
+}
 
 /// Line is pulled up
 struct PullUp;
@@ -7,19 +14,16 @@ struct PullUp;
 struct PullDown;
 /// Line is floating
 struct Floating;
-/// Line has both pull up and pull down resistors
-struct PullSideways;
 
-struct Input<MODE, PULL> {
-    _mode: PhantomData<MODE>,
+/// Input mode
+struct DigitalInput<PULL> {
     _pull: PhantomData<PULL>,
 }
 
-/// Pin input state digital
-pub struct DigitalInput;
-/// Pin input state analog
-pub struct AnalogInput;
+/// Analog input pin
+struct AnalogInput;
 
+/// Output mode
 struct Output<MODE, PULL> {
     _mode: PhantomData<MODE>,
     _pull: PhantomData<PULL>,
@@ -62,4 +66,216 @@ pub struct AF13;
 pub struct AF14;
 /// Alternate function 15 (type state)
 pub struct AF15;
+
+macro_rules! gpio_def {
+    ($GPIO:ident, $gpio:ident, $PX:ident, [
+     $(($PXi:ident, $pxi:ident, $i:expr, $AFR:ident),)+]) => {
+        pub mod $gpio {
+
+
+        }
+    };
+}
+
+gpio_def!(GPIOA, gpioa, PA, [
+          (PA0, pa0, 0, AFRL),
+          (PA1, pa1, 1, AFRL),
+          (PA2, pa2, 2, AFRL),
+          (PA3, pa3, 3, AFRL),
+          (PA4, pa4, 4, AFRL),
+          (PA5, pa5, 5, AFRL),
+          (PA6, pa6, 6, AFRL),
+          (PA7, pa7, 7, AFRL),
+          (PA8, pa8, 8, AFRH),
+          (PA9, pa9, 9, AFRH),
+          (PA10, pa10, 10, AFRH),
+          (PA11, pa11, 11, AFRH),
+          (PA12, pa12, 12, AFRH),
+          (PA13, pa13, 13, AFRH),
+          (PA14, pa14, 14, AFRH),
+          (PA15, pa15, 15, AFRH),
+]);
+
+gpio_def!(GPIOB, gpiob, PB, [
+          (PB0, pb0, 0, AFRL),
+          (PB1, pb1, 1, AFRL),
+          (PB2, pb2, 2, AFRL),
+          (PB3, pb3, 3, AFRL),
+          (PB4, pb4, 4, AFRL),
+          (PB5, pb5, 5, AFRL),
+          (PB6, pb6, 6, AFRL),
+          (PB7, pb7, 7, AFRL),
+          (PB8, pb8, 8, AFRH),
+          (PB9, pb9, 9, AFRH),
+          (PB10, pb10, 10, AFRH),
+          (PB11, pb11, 11, AFRH),
+          (PB12, pb12, 12, AFRH),
+          (PB13, pb13, 13, AFRH),
+          (PB14, pb14, 14, AFRH),
+          (PB15, pb15, 15, AFRH),
+]);
+
+gpio_def!(GPIOC, gpioc, PC, [
+          (PC0, pc0, 0, AFRL),
+          (PC1, pc1, 1, AFRL),
+          (PC2, pc2, 2, AFRL),
+          (PC3, pc3, 3, AFRL),
+          (PC4, pc4, 4, AFRL),
+          (PC5, pc5, 5, AFRL),
+          (PC6, pc6, 6, AFRL),
+          (PC7, pc7, 7, AFRL),
+          (PC8, pc8, 8, AFRH),
+          (PC9, pc9, 9, AFRH),
+          (PC10, pc10, 10, AFRH),
+          (PC11, pc11, 11, AFRH),
+          (PC12, pc12, 12, AFRH),
+          (PC13, pc13, 13, AFRH),
+          (PC14, pc14, 14, AFRH),
+          (PC15, pc15, 15, AFRH),
+]);
+
+gpio_def!(GPIOD, gpiod, PD, [
+          (PD0, pd0, 0, AFRL),
+          (PD1, pd1, 1, AFRL),
+          (PD2, pd2, 2, AFRL),
+          (PD3, pd3, 3, AFRL),
+          (PD4, pd4, 4, AFRL),
+          (PD5, pd5, 5, AFRL),
+          (PD6, pd6, 6, AFRL),
+          (PD7, pd7, 7, AFRL),
+          (PD8, pd8, 8, AFRH),
+          (PD9, pd9, 9, AFRH),
+          (PD10, pd10, 10, AFRH),
+          (PD11, pd11, 11, AFRH),
+          (PD12, pd12, 12, AFRH),
+          (PD13, pd13, 13, AFRH),
+          (PD14, pd14, 14, AFRH),
+          (PD15, pd15, 15, AFRH),
+]);
+
+gpio_def!(GPIOE, gpioe, PE, [
+          (PE0, pe0, 0, AFRL),
+          (PE1, pe1, 1, AFRL),
+          (PE2, pe2, 2, AFRL),
+          (PE3, pe3, 3, AFRL),
+          (PE4, pe4, 4, AFRL),
+          (PE5, pe5, 5, AFRL),
+          (PE6, pe6, 6, AFRL),
+          (PE7, pe7, 7, AFRL),
+          (PE8, pe8, 8, AFRH),
+          (PE9, pe9, 9, AFRH),
+          (PE10, pe10, 10, AFRH),
+          (PE11, pe11, 11, AFRH),
+          (PE12, pe12, 12, AFRH),
+          (PE13, pe13, 13, AFRH),
+          (PE14, pe14, 14, AFRH),
+          (PE15, pe15, 15, AFRH),
+]);
+
+gpio_def!(GPIOF, gpiof, PF, [
+          (PF0, pf0, 0, AFRL),
+          (PF1, pf1, 1, AFRL),
+          (PF2, pf2, 2, AFRL),
+          (PF3, pf3, 3, AFRL),
+          (PF4, pf4, 4, AFRL),
+          (PF5, pf5, 5, AFRL),
+          (PF6, pf6, 6, AFRL),
+          (PF7, pf7, 7, AFRL),
+          (PF8, pf8, 8, AFRH),
+          (PF9, pf9, 9, AFRH),
+          (PF10, pf10, 10, AFRH),
+          (PF11, pf11, 11, AFRH),
+          (PF12, pf12, 12, AFRH),
+          (PF13, pf13, 13, AFRH),
+          (PF14, pf14, 14, AFRH),
+          (PF15, pf15, 15, AFRH),
+]);
+
+gpio_def!(GPIOG, gpiog, PG, [
+          (PG0, pg0, 0, AFRL),
+          (PG1, pg1, 1, AFRL),
+          (PG2, pg2, 2, AFRL),
+          (PG3, pg3, 3, AFRL),
+          (PG4, pg4, 4, AFRL),
+          (PG5, pg5, 5, AFRL),
+          (PG6, pg6, 6, AFRL),
+          (PG7, pg7, 7, AFRL),
+          (PG8, pg8, 8, AFRH),
+          (PG9, pg9, 9, AFRH),
+          (PG10, pg10, 10, AFRH),
+          (PG11, pg11, 11, AFRH),
+          (PG12, pg12, 12, AFRH),
+          (PG13, pg13, 13, AFRH),
+          (PG14, pg14, 14, AFRH),
+          (PG15, pg15, 15, AFRH),
+]); 
+
+gpio_def!(GPIOH, gpioh, PH, [
+          (PH0, ph0, 0, AFRL),
+          (PH1, ph1, 1, AFRL),
+          (PH2, ph2, 2, AFRL),
+          (PH3, ph3, 3, AFRL),
+          (PH4, ph4, 4, AFRL),
+          (PH5, ph5, 5, AFRL),
+          (PH6, ph6, 6, AFRL),
+          (PH7, ph7, 7, AFRL),
+          (PH8, ph8, 8, AFRH),
+          (PH9, ph9, 9, AFRH),
+          (PH10, ph10, 10, AFRH),
+          (PH11, ph11, 11, AFRH),
+          (PH12, ph12, 12, AFRH),
+          (PH13, ph13, 13, AFRH),
+          (PH14, ph14, 14, AFRH),
+          (PH15, ph15, 15, AFRH),
+]); 
+
+gpio_def!(GPIOI, gpioi, PI, [
+          (PI0, pi0, 0, AFRL),
+          (PI1, pi1, 1, AFRL),
+          (PI2, pi2, 2, AFRL),
+          (PI3, pi3, 3, AFRL),
+          (PI4, pi4, 4, AFRL),
+          (PI5, pi5, 5, AFRL),
+          (PI6, pi6, 6, AFRL),
+          (PI7, pi7, 7, AFRL),
+          (PI8, pi8, 8, AFRH),
+          (PI9, pi9, 9, AFRH),
+          (PI10, pi10, 10, AFRH),
+          (PI11, pi11, 11, AFRH),
+          (PI12, pi12, 12, AFRH),
+          (PI13, pi13, 13, AFRH),
+          (PI14, pi14, 14, AFRH),
+          (PI15, pi15, 15, AFRH),
+]); 
+
+gpio_def!(GPIOJ, gpioj, PJ, [
+          (PJ0, pj0, 0, AFRL),
+          (PJ1, pj1, 1, AFRL),
+          (PJ2, pj2, 2, AFRL),
+          (PJ3, pj3, 3, AFRL),
+          (PJ4, pj4, 4, AFRL),
+          (PJ5, pj5, 5, AFRL),
+          (PJ6, pj6, 6, AFRL),
+          (PJ7, pj7, 7, AFRL),
+          (PJ8, pj8, 8, AFRH),
+          (PJ9, pj9, 9, AFRH),
+          (PJ10, pj10, 10, AFRH),
+          (PJ11, pj11, 11, AFRH),
+          (PJ12, pj12, 12, AFRH),
+          (PJ13, pj13, 13, AFRH),
+          (PJ14, pj14, 14, AFRH),
+          (PJ15, pj15, 15, AFRH),
+]); 
+
+gpio_def!(GPIOK, gpiok, PK, [
+          (PK0, pk0, 0, AFRL),
+          (PK1, pk1, 1, AFRL),
+          (PK2, pk2, 2, AFRL),
+          (PK3, pk3, 3, AFRL),
+          (PK4, pk4, 4, AFRL),
+          (PK5, pk5, 5, AFRL),
+          (PK6, pk6, 6, AFRL),
+]); 
+
+
 
