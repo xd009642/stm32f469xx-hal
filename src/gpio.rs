@@ -1,5 +1,4 @@
 use core::marker::PhantomData;
-use stm32f469xx::*;
 
 /// provides access to gpio pin
 pub trait GpioInterface {
@@ -71,18 +70,47 @@ macro_rules! gpio_def {
     ($GPIO:ident, $gpio:ident, $gpio_ns:ident, $PX:ident, [
      $(($PXi:ident, $pxi:ident, $i:expr, $AFR:ident),)+]) => {
         pub mod $gpio {
+            use super::*;
             use stm32f469xx::{$GPIO, $gpio_ns};
             use core::marker::PhantomData;
             use hal::digital::OutputPin; 
 
+            pub struct Parts {
+                r: Registers, 
+                $(
+                /// Set to unconnected input as default.
+                $pxi: $PXi<DigitalInput<Floating>>,
+                )+
+            }
 
+            struct Registers {
+                _0:()
+            }
+
+            impl Registers {
+                pub(crate) fn regs(&mut self) -> &$gpio_ns::RegisterBlock {
+                    unsafe { &(*$GPIO::ptr()) }
+                }
+            }
+
+            impl GpioInterface for $GPIO {
+                type Parts = Parts;
+
+                fn split(self) -> Self::Parts {
+                    Parts {
+                        r: Registers{_0:()},
+                        $(
+                            $pxi: $PXi{_mode: PhantomData},
+                        )+
+                    }
+                }
+            }
             $(
-                struct $PXi<MODE, PULL> {
-                    _mode: PhantomData<MODE>,
-                    _pull: PhantomData<PULL>,
+                struct $PXi<TYPE> {
+                    _mode: PhantomData<TYPE>,
                 }
 
-                impl<MODE, PULL> OutputPin for $PXi<MODE, PULL> {
+                impl<MODE, PULL> OutputPin for $PXi<Output<MODE, PULL>> {
                     fn is_high(&self) -> bool {
                         !self.is_low()
                     }
