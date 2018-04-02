@@ -23,9 +23,8 @@ struct DigitalInput<PULL> {
 struct AnalogInput;
 
 /// Output mode
-struct Output<MODE, PULL> {
+struct Output<MODE> {
     _mode: PhantomData<MODE>,
-    _pull: PhantomData<PULL>,
 }
 
 /// Pin output state push-pull pull-up
@@ -105,17 +104,36 @@ macro_rules! gpio_def {
                     }
                 }
             }
-
+            
             struct $PX<MODE> {
                 i: u8,
                 _mode: PhantomData<MODE>,
             }
+
+            impl<MODE> OutputPin for $PX<Output<MODE>> {
+                fn is_high(&self) -> bool {
+                    !self.is_low()
+                }
+
+                fn is_low(&self) -> bool {
+                    unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << self.i) == 0 }
+                }
+
+                fn set_high(&mut self) {
+                    unimplemented!();
+                }
+
+                fn set_low(&mut self) {
+                    unimplemented!();
+                }
+            }
+
             $(
                 struct $PXi<TYPE> {
                     _mode: PhantomData<TYPE>,
                 }
 
-                impl<MODE, PULL> OutputPin for $PXi<Output<MODE, PULL>> {
+                impl<MODE> OutputPin for $PXi<Output<MODE>> {
                     fn is_high(&self) -> bool {
                         !self.is_low()
                     }
@@ -133,11 +151,11 @@ macro_rules! gpio_def {
                     }
                 }
 
-                impl $PXi<TYPE> {
+                impl<TYPE> $PXi<TYPE> {
                     pub fn downgrade(&self) -> $PX<TYPE> {
-                        $PX<TYPE> {
+                        $PX {
                             i: $i,
-                            _mode = self._mode,
+                            _mode: self._mode,
                         }
                     }
                 }
@@ -411,3 +429,4 @@ gpio_def!(
         (PK6, pk6, 6, AFRL),
     ]
 );
+
