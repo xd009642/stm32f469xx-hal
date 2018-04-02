@@ -105,6 +105,11 @@ macro_rules! gpio_def {
                     }
                 }
             }
+
+            struct $PX<MODE> {
+                i: u8,
+                _mode: PhantomData<MODE>,
+            }
             $(
                 struct $PXi<TYPE> {
                     _mode: PhantomData<TYPE>,
@@ -125,6 +130,15 @@ macro_rules! gpio_def {
 
                     fn set_low(&mut self) {
                         unimplemented!();
+                    }
+                }
+
+                impl $PXi<TYPE> {
+                    pub fn downgrade(&self) -> $PX<TYPE> {
+                        $PX<TYPE> {
+                            i: $i,
+                            _mode = self._mode,
+                        }
                     }
                 }
             )+
