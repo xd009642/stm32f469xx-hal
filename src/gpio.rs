@@ -65,6 +65,24 @@ pub struct AF14;
 /// Alternate function 15 (type state)
 pub struct AF15;
 
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum PinMode {
+    Input = 0,
+    Output = 1,
+    AlternateFunction = 2,
+    Analog = 3,
+}
+
+#[repr(u32)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum PinSpeed {
+    Low = 0,
+    Medium = 1,
+    High = 2,
+    VeryHigh = 3,
+}
+
 macro_rules! gpio_def {
     ($GPIO:ident, $gpio:ident, $gpio_ns:ident, $PX:ident, [
      $(($PXi:ident, $pxi:ident, $i:expr, $AFR:ident),)+]) => {
@@ -75,7 +93,7 @@ macro_rules! gpio_def {
             use hal::digital::OutputPin; 
 
             pub struct Parts {
-                r: Registers, 
+                regs: Registers, 
                 $(
                 /// Set to unconnected input as default.
                 $pxi: $PXi<DigitalInput<Floating>>,
@@ -97,7 +115,7 @@ macro_rules! gpio_def {
 
                 fn split(self) -> Self::Parts {
                     Parts {
-                        r: Registers{_0:()},
+                        regs: Registers{_0:()},
                         $(
                             $pxi: $PXi{_mode: PhantomData},
                         )+
@@ -131,6 +149,16 @@ macro_rules! gpio_def {
                 }
             }
 
+            impl<MODE> $PX<MODE> {
+                fn set_speed(&mut self, speed: PinSpeed) {
+                    let offset = self.i * 2;
+                    let speed = speed as u32;
+                    unsafe {
+                    (*$GPIO::ptr()).ospeedr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (speed<<offset)));
+                    }
+                }
+            }
+
             $(
                 pub struct $PXi<TYPE> {
                     _mode: PhantomData<TYPE>,
@@ -155,6 +183,7 @@ macro_rules! gpio_def {
                 }
 
                 impl<TYPE> $PXi<TYPE> {
+                    /// Downgrade type to more general type representing any pin on the bank.
                     pub fn downgrade(&self) -> $PX<TYPE> {
                         $PX {
                             i: $i,
