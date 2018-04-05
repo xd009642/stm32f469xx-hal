@@ -154,7 +154,7 @@ macro_rules! gpio_def {
                     let offset = self.i * 2;
                     let speed = speed as u32;
                     unsafe {
-                    (*$GPIO::ptr()).ospeedr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (speed<<offset)));
+                        (*$GPIO::ptr()).ospeedr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (speed<<offset)));
                     }
                 }
             }
@@ -188,6 +188,14 @@ macro_rules! gpio_def {
                         $PX {
                             i: $i,
                             _mode: self._mode,
+                        }
+                    }
+                    
+                    fn set_speed(&mut self, speed: PinSpeed) {
+                        let offset = $i * 2;
+                        let speed = speed as u32;
+                        unsafe {
+                            (*$GPIO::ptr()).ospeedr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (speed<<offset)));
                         }
                     }
                 }
