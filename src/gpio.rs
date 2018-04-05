@@ -8,14 +8,14 @@ pub trait GpioInterface {
 }
 
 /// Line is pulled up
-struct PullUp;
+pub struct PullUp;
 /// Line is pulled down
-struct PullDown;
+pub struct PullDown;
 /// Line is floating
-struct Floating;
+pub struct Floating;
 
 /// Input mode
-struct DigitalInput<PULL> {
+pub struct DigitalInput<PULL> {
     _pull: PhantomData<PULL>,
 }
 
@@ -150,11 +150,25 @@ macro_rules! gpio_def {
             }
 
             impl<MODE> $PX<MODE> {
-                fn set_speed(&mut self, speed: PinSpeed) {
+                /// Sets the port slew speed
+                pub fn set_speed(&mut self, speed: PinSpeed) {
                     let offset = self.i * 2;
                     let speed = speed as u32;
                     unsafe {
                         (*$GPIO::ptr()).ospeedr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (speed<<offset)));
+                    }
+                }
+
+                /// Turn pin into input pulldown
+                pub fn into_input_pulldown(self) -> $PX<DigitalInput<PullDown>> {
+                    let offset = self.i * 2;
+                    unsafe {
+                        (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
+                        (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b10<<offset)));
+                    }
+                    $PX {
+                        i: self.i,
+                        _mode: PhantomData
                     }
                 }
             }
@@ -184,14 +198,25 @@ macro_rules! gpio_def {
 
                 impl<TYPE> $PXi<TYPE> {
                     /// Downgrade type to more general type representing any pin on the bank.
-                    pub fn downgrade(&self) -> $PX<TYPE> {
+                    pub fn downgrade(self) -> $PX<TYPE> {
                         $PX {
                             i: $i,
-                            _mode: self._mode,
+                            _mode: PhantomData,
                         }
                     }
                     
-                    fn set_speed(&mut self, speed: PinSpeed) {
+                    /// Turn pin into input pulldown
+                    pub fn into_input_pulldown(self) -> $PXi<DigitalInput<PullDown>> {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
+                            (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b10<<offset)));
+                        }
+                        $PXi { _mode: PhantomData }
+                    }
+
+                    /// Sets the port slew speed
+                    pub fn set_speed(&mut self, speed: PinSpeed) {
                         let offset = $i * 2;
                         let speed = speed as u32;
                         unsafe {
