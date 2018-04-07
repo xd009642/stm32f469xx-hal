@@ -91,6 +91,9 @@ macro_rules! gpio_def {
             use stm32f469xx::{$GPIO, $gpio_ns};
             use core::marker::PhantomData;
             use hal::digital::OutputPin;
+            #[cfg(feature = "unproven")]
+            use hal::digital::InputPin;
+
 
             pub struct Parts {
                 regs: Registers,
@@ -149,6 +152,17 @@ macro_rules! gpio_def {
                 }
             }
 
+            #[cfg(feature = "unproven")]
+            impl<MODE> InputPin for $PX<DigitalInput<MODE>> {
+                fn is_high(&self) -> bool {
+                    !self.is_low()
+                }
+
+                fn is_low(&self) -> bool {
+                    unsafe { (*$GPIO::ptr()).idr.read().bits() & (1<<self.i) == 0 }
+                }
+            }
+
             impl<MODE> $PX<MODE> {
                 /// Sets the port slew speed
                 pub fn set_speed(&mut self, speed: PinSpeed) {
@@ -181,6 +195,17 @@ macro_rules! gpio_def {
 
                     fn set_low(&mut self) {
                         unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<($i + 16))); }
+                    }
+                }
+
+                #[cfg(feature = "unproven")]
+                impl<MODE> InputPin for $PXi<DigitalInput<MODE>> {
+                    fn is_high(&self) -> bool {
+                        !self.is_low()
+                    }
+
+                    fn is_low(&self) -> bool {
+                        unsafe { (*$GPIO::ptr()).idr.read().bits() & (1<<$i) == 0 }
                     }
                 }
 
