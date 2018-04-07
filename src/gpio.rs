@@ -159,6 +159,19 @@ macro_rules! gpio_def {
                     }
                 }
 
+                /// Turn pin into input pullup
+                pub fn into_input_pullup(self) -> $PX<DigitalInput<PullUp>> {
+                    let offset = self.i * 2;
+                    unsafe {
+                        (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
+                        (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b01<<offset)));
+                    }
+                    $PX {
+                        i: self.i,
+                        _mode: PhantomData
+                    }
+                }
+
                 /// Turn pin into input pulldown
                 pub fn into_input_pulldown(self) -> $PX<DigitalInput<PullDown>> {
                     let offset = self.i * 2;
@@ -203,6 +216,16 @@ macro_rules! gpio_def {
                             i: $i,
                             _mode: PhantomData,
                         }
+                    }
+                    
+                    /// Turn pin into input pullup
+                    pub fn into_input_pullup(self) -> $PXi<DigitalInput<PullUp>> {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
+                            (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b01<<offset)));
+                        }
+                        $PXi { _mode: PhantomData }
                     }
                     
                     /// Turn pin into input pulldown
