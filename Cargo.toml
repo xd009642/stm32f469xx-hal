@@ -4,9 +4,15 @@ version = "0.1.0"
 authors = ["xd009642 <danielmckenna93@gmail.com>"]
 license = "MIT/Apache-2.0"
 readme = "README.md"
+keywords = ["embedded-hal", "hal", "stm32f4", "no_std", "cortex-m"]
 repository = "https://github.com/xd009642/stm32f469xx-hal.git"
-description = ""
+description = "Embedded HAL implementation for stm32f469xx microcontrollers"
 
 [dependencies]
+cortex-m = "0.4.3"
 stm32f469xx = "0.1.0"
 embedded-hal = "0.1.2"
+nb = "0.1.1"
+
+[features]
+unproven = ["embedded-hal/unproven"]
