@@ -20,17 +20,17 @@ pub struct DigitalInput<PULL> {
 }
 
 /// Analog input pin
-struct AnalogInput;
+pub struct AnalogInput;
 
 /// Output mode
-struct Output<MODE> {
+pub struct Output<MODE> {
     _mode: PhantomData<MODE>,
 }
 
 /// Pin output state push-pull pull-up
-pub struct PushPullOut;
+pub struct PushPull;
 /// Pin output state Open-drain
-pub struct OpenDrainOut;
+pub struct OpenDrain;
 
 /// Alternate function 0 (type state)
 pub struct AF0;
@@ -90,10 +90,10 @@ macro_rules! gpio_def {
             use super::*;
             use stm32f469xx::{$GPIO, $gpio_ns};
             use core::marker::PhantomData;
-            use hal::digital::OutputPin; 
+            use hal::digital::OutputPin;
 
             pub struct Parts {
-                regs: Registers, 
+                regs: Registers,
                 $(
                 /// Set to unconnected input as default.
                 $pxi: $PXi<DigitalInput<Floating>>,
@@ -122,7 +122,7 @@ macro_rules! gpio_def {
                     }
                 }
             }
-            
+
             pub struct $PX<MODE> {
                 i: u8,
                 _mode: PhantomData<MODE>,
@@ -138,7 +138,7 @@ macro_rules! gpio_def {
                     unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << self.i) == 0 }
                 }
                 /// Sets the pin output to high. If the pin is set high and low at the same time
-                /// the high value will have precedence. 
+                /// the high value will have precedence.
                 fn set_high(&mut self) {
                     unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<self.i)); }
                 }
@@ -159,31 +159,6 @@ macro_rules! gpio_def {
                     }
                 }
 
-                /// Turn pin into input pullup
-                pub fn into_input_pullup(self) -> $PX<DigitalInput<PullUp>> {
-                    let offset = self.i * 2;
-                    unsafe {
-                        (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
-                        (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b01<<offset)));
-                    }
-                    $PX {
-                        i: self.i,
-                        _mode: PhantomData
-                    }
-                }
-
-                /// Turn pin into input pulldown
-                pub fn into_input_pulldown(self) -> $PX<DigitalInput<PullDown>> {
-                    let offset = self.i * 2;
-                    unsafe {
-                        (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
-                        (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b10<<offset)));
-                    }
-                    $PX {
-                        i: self.i,
-                        _mode: PhantomData
-                    }
-                }
             }
 
             $(
@@ -209,6 +184,24 @@ macro_rules! gpio_def {
                     }
                 }
 
+                impl $PXi<Output<OpenDrain>> {
+                    /// Activates the internal pull-up resister for the opendrain output.
+                    pub fn set_pullup(&mut self) {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b01 << offset)));
+                        }
+                    }
+
+                    /// Activates the internal pull-down resister for the opendrain output.
+                    pub fn set_pulldown(&mut self) {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b10 << offset)));
+                        }
+                    }
+                }
+
                 impl<TYPE> $PXi<TYPE> {
                     /// Downgrade type to more general type representing any pin on the bank.
                     pub fn downgrade(self) -> $PX<TYPE> {
@@ -217,7 +210,7 @@ macro_rules! gpio_def {
                             _mode: PhantomData,
                         }
                     }
-                    
+
                     /// Turn pin into input pullup
                     pub fn into_input_pullup(self) -> $PXi<DigitalInput<PullUp>> {
                         let offset = $i * 2;
@@ -227,13 +220,42 @@ macro_rules! gpio_def {
                         }
                         $PXi { _mode: PhantomData }
                     }
-                    
+
                     /// Turn pin into input pulldown
                     pub fn into_input_pulldown(self) -> $PXi<DigitalInput<PullDown>> {
                         let offset = $i * 2;
                         unsafe {
                             (*$GPIO::ptr()).moder.modify(|r, w| w.bits(r.bits() & !(3<<offset)));
                             (*$GPIO::ptr()).pupdr.modify(|r, w| w.bits((r.bits() & !(3<<offset)) | (0b10<<offset)));
+                        }
+                        $PXi { _mode: PhantomData }
+                    }
+
+                    /// Configures the pin as a push-pull output
+                    pub fn into_output_pushpull(self) -> $PXi<Output<PushPull>> {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).moder.modify(|r, w| w.bits((r.bits() & !(3<<offset))|(0b01<<offset)));
+                            (*$GPIO::ptr()).otyper.modify(|r, w| w.bits(r.bits() & !(1<<$i)));
+                        }
+                        $PXi { _mode: PhantomData }
+                    }
+
+                    /// Configures the pin as an opendrain output
+                    pub fn into_output_opendrain(self) -> $PXi<Output<OpenDrain>> {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).moder.modify(|r, w| w.bits((r.bits() & !(3<<offset))|(0b01<<offset)));
+                            (*$GPIO::ptr()).otyper.modify(|r, w| w.bits((r.bits() & !(1<<$i)) | (0b1<<$i)));
+                        }
+                        $PXi { _mode: PhantomData }
+                    }
+
+                    /// Configures the pin as an analog input.
+                    pub fn into_analog_pin(self) -> $PXi<AnalogInput> {
+                        let offset = $i * 2;
+                        unsafe {
+                            (*$GPIO::ptr()).moder.modify(|r, w| w.bits((r.bits() & !(3<<offset))|(0b11<<offset)));
                         }
                         $PXi { _mode: PhantomData }
                     }
@@ -517,4 +539,3 @@ gpio_def!(
         (PK6, pk6, 6, AFRL),
     ]
 );
-
