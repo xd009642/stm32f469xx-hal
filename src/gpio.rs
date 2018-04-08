@@ -99,7 +99,7 @@ macro_rules! gpio_def {
                 regs: Registers,
                 $(
                 /// Set to unconnected input as default.
-                $pxi: $PXi<DigitalInput<Floating>>,
+                pub $pxi: $PXi<DigitalInput<Floating>>,
                 )+
             }
 
