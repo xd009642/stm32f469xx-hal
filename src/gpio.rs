@@ -126,6 +126,64 @@ macro_rules! gpio_def {
                 }
             }
 
+            /// Represents a pin where the GPIO registers have been locked.
+            /// When locked the mode, otype, ospeed, pupd and afl registers for
+            /// the pin may not be written to.
+            pub struct LockedPin<PIN> {
+                i: u8,
+                pin: PIN,
+            }
+
+            impl<PIN> LockedPin<PIN> {
+                /// Unlock the GPIO port
+                pub fn unlock(self) -> PIN {
+                    unsafe {
+                        // Zero out lock bit
+                        (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() & !(1<<16)));
+                        // Set lock bit and change to pin locks
+                        (*$GPIO::ptr()).lckr.modify(|r, w| w.bits((r.bits() & !(1<<self.i) ) | (1<<16)));
+                        // Unset lock bit keeping change to pin locks
+                        (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() & !(1<<16)));
+                        // Set lock bit. Port is now unlocked
+                        (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() | (1<<16)));
+                    }
+                    self.pin 
+                }
+            }
+            
+            impl<PIN> OutputPin for LockedPin<PIN> where PIN:OutputPin {
+                /// Returns true if the output pin is high.
+                fn is_high(&self) -> bool {
+                    self.pin.is_high()
+                }
+                /// Returns true if the output pin is low.
+                fn is_low(&self) -> bool {
+                    self.pin.is_low()
+                }
+                /// Sets the pin output to high. If the pin is set high and low at the same time
+                /// the high value will have precedence.
+                fn set_high(&mut self) {
+                    self.pin.set_high();
+                }
+                /// Sets the pin output to low. If the pin is set high and low at the same time
+                /// the high value will have precedence.
+                fn set_low(&mut self) {
+                    self.pin.set_low();
+                }
+            }
+            
+            #[cfg(feature = "unproven")]
+            impl<PIN> InputPin for LockedPin<PIN> where PIN:InputPin {
+                fn is_high(&self) -> bool {
+                    self.pin.is_high()
+                }
+
+                fn is_low(&self) -> bool {
+                    self.pin.is_low()
+                }
+            }
+
+
             pub struct $PX<MODE> {
                 i: u8,
                 _mode: PhantomData<MODE>,
@@ -228,6 +286,24 @@ macro_rules! gpio_def {
                 }
 
                 impl<TYPE> $PXi<TYPE> {
+                    /// Lock the GPIO pin
+                    pub fn lock(self) -> LockedPin<$PXi<TYPE>> {
+                        unsafe {
+                            // Zero out lock bit
+                            (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() & !(1<<16)));
+                            // Set lock bit and change to pin locks
+                            (*$GPIO::ptr()).lckr.modify(|r, w| w.bits((r.bits() | (1<<$i) ) | (1<<16)));
+                            // Unset lock bit keeping change to pin locks
+                            (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() & !(1<<16)));
+                            // Set lock bit. Port is now unlocked
+                            (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() | (1<<16)));
+                        }
+                        LockedPin {
+                            i: $i,
+                            pin: self 
+                        }
+                    }
+
                     /// Downgrade type to more general type representing any pin on the bank.
                     pub fn downgrade(self) -> $PX<TYPE> {
                         $PX {
