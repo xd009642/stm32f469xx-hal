@@ -3,6 +3,20 @@ use hal::serial;
 use stm32f469xx::{USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8}
 use gpio::*;
 
+/// Error enum for USART messages
+pub enum Error {
+    /// Overrun flag is set when data is ready to be transferred into the
+    /// data register but the current data there hasn't been read yet.
+    Overrun,
+    /// Flagged when noise is detected on a received frame
+    Noise,
+    /// Set when de-synchronisation, excessive noise or a break character is
+    /// detected
+    Framing,
+    /// Set when a parity error is detected on the data.
+    Parity,
+}
+
 /// Tx pin trait - not to be implemented
 pub unsafe trait TxPin<SERIAL> {}
 /// Rx pin trait - not to be implemented
