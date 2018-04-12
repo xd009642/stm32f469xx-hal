@@ -1,5 +1,6 @@
 use core::marker::PhantomData;
 use hal::serial;
+use nb;
 use stm32f469xx::{USART1, USART2, USART3, UART4, UART5, USART6, UART7, UART8}
 use gpio::*;
 
@@ -55,3 +56,59 @@ unsafe impl RxPin<UART5> for PD2<AF8> {}
 unsafe impl RxPin<UART7> for PE7<AF8> {}
 unsafe impl RxPin<UART7> for PF6<AF8> {}
 unsafe impl RxPin<UART8> for PE0<AF8> {}
+
+macro_rules! uart {
+    ($UART: ident) => {
+        impl serial::Read<u8> for RxPin<$UART> {
+            type Error = Error;
+            fn read(&mut self) -> nb::Result<u8, Error> {
+                unimplemented!(); 
+            }
+        }
+
+        impl serial::Write<u8> for TxPin<$UART> {
+            type Error = Error;
+
+            fn write(&mut self, word: u8) -> nb::Result<(), Error> {
+                unimplemented!();
+            }
+
+            fn flush(&mut self) -> nb::Result<(), Error> {
+                unimplemented!();
+            }
+        }
+    }
+}
+
+macro_rules! usart {
+    ($USART: ident) => {
+        impl serial::Read<u8> for RxPin<$USART> {
+            type Error = Error;
+            fn read(&mut self) -> nb::Result<u8, Error> {
+                unimplemented!(); 
+            }
+        }
+
+        impl serial::Write<u8> for TxPin<$USART> {
+            type Error = Error;
+
+            fn write(&mut self, word: u8) -> nb::Result<(), Error> {
+                unimplemented!();
+            }
+
+            fn flush(&mut self) -> nb::Result<(), Error> {
+                unimplemented!();
+            }
+        }
+    }
+}
+
+uart!(UART4);
+uart!(UART5);
+uart!(UART7);
+uart!(UART8);
+
+usart!(USART1);
+usart!(USART2);
+usart!(USART3);
+usart!(USART6);
