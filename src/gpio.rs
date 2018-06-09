@@ -92,7 +92,7 @@ macro_rules! gpio_def {
             use core::marker::PhantomData;
             use hal::digital::OutputPin;
             #[cfg(feature = "unproven")]
-            use hal::digital::InputPin;
+            use hal::digital::{InputPin, StatefulOutputPin};
 
 
             pub struct Parts {
@@ -152,14 +152,6 @@ macro_rules! gpio_def {
             }
             
             impl<PIN> OutputPin for LockedPin<PIN> where PIN:OutputPin {
-                /// Returns true if the output pin is high.
-                fn is_high(&self) -> bool {
-                    self.pin.is_high()
-                }
-                /// Returns true if the output pin is low.
-                fn is_low(&self) -> bool {
-                    self.pin.is_low()
-                }
                 /// Sets the pin output to high. If the pin is set high and low at the same time
                 /// the high value will have precedence.
                 fn set_high(&mut self) {
@@ -169,6 +161,17 @@ macro_rules! gpio_def {
                 /// the high value will have precedence.
                 fn set_low(&mut self) {
                     self.pin.set_low();
+                }
+            }
+            #[cfg(feature = "unproven")]
+            impl<PIN> StatefulOutputPin for LockedPin<PIN> where PIN:StatefulOutputPin {
+                /// Returns true if the output pin is high.
+                fn is_set_high(&self) -> bool {
+                    self.pin.is_set_high()
+                }
+                /// Returns true if the output pin is low.
+                fn is_set_low(&self) -> bool {
+                    self.pin.is_set_low()
                 }
             }
             
@@ -190,14 +193,6 @@ macro_rules! gpio_def {
             }
 
             impl<MODE> OutputPin for $PX<Output<MODE>> {
-                /// Returns true if the output pin is high.
-                fn is_high(&self) -> bool {
-                    !self.is_low()
-                }
-                /// Returns true if the output pin is low.
-                fn is_low(&self) -> bool {
-                    unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << self.i) == 0 }
-                }
                 /// Sets the pin output to high. If the pin is set high and low at the same time
                 /// the high value will have precedence.
                 fn set_high(&mut self) {
@@ -208,6 +203,19 @@ macro_rules! gpio_def {
                 fn set_low(&mut self) {
                     unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<(self.i + 16))); }
                 }
+            }
+            
+            #[cfg(feature = "unproven")]
+            impl<MODE> StatefulOutputPin for $PX<DigitalInput<MODE>> {
+                /// Returns true if the output pin is high.
+                fn is_set_high(&self) -> bool {
+                    !self.is_set_low()
+                }
+                /// Returns true if the output pin is low.
+                fn is_set_low(&self) -> bool {
+                    unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << self.i) == 0 }
+                }
+            
             }
 
             #[cfg(feature = "unproven")]
@@ -239,20 +247,23 @@ macro_rules! gpio_def {
                 }
 
                 impl<MODE> OutputPin for $PXi<Output<MODE>> {
-                    fn is_high(&self) -> bool {
-                        !self.is_low()
-                    }
-
-                    fn is_low(&self) -> bool {
-                        unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << $i) == 0 }
-                    }
-
                     fn set_high(&mut self) {
                         unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<$i)); }
                     }
 
                     fn set_low(&mut self) {
                         unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<($i + 16))); }
+                    }
+                }
+
+                #[cfg(feature = "unproven")]
+                impl<MODE> StatefulOutputPin for $PXi<Output<Mode>> {
+                    fn is_set_high(&self) -> bool {
+                        !self.is_set_low()
+                    }
+
+                    fn is_set_low(&self) -> bool {
+                        unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << $i) == 0 }
                     }
                 }
 
