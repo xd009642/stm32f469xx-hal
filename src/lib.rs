@@ -6,4 +6,4 @@ pub extern crate stm32f469xx;
 
 pub mod rcc;
 pub mod gpio;
-
+pub mod watchdog;
