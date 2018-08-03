@@ -1,10 +1,11 @@
 use core::marker::PhantomData;
+use rcc::AHB1;
 
 /// provides access to gpio pin
 pub trait GpioInterface {
     type Parts;
 
-    fn split(self) -> Self::Parts;
+    fn split(self, ahb: &mut AHB1) -> Self::Parts;
 }
 
 /// Line is pulled up
@@ -84,9 +85,10 @@ pub enum PinSpeed {
 }
 
 macro_rules! gpio_def {
-    ($GPIO:ident, $gpio:ident, $gpio_ns:ident, $PX:ident, [
+    ($GPIO:ident, $gpio:ident, $gpio_ns:ident, $PX:ident, $ioenr:ident, $iorst:ident, [
      $(($PXi:ident, $pxi:ident, $i:expr, $afr:ident),)+]) => {
         pub mod $gpio {
+            use rcc::AHB1;
             use super::*;
             use stm32f469xx::{$GPIO, $gpio_ns};
             use core::marker::PhantomData;
@@ -116,7 +118,11 @@ macro_rules! gpio_def {
             impl GpioInterface for $GPIO {
                 type Parts = Parts;
 
-                fn split(self) -> Self::Parts {
+                fn split(self, ahb: &mut AHB1) -> Self::Parts {
+                    ahb.enr().modify(|_, w| w.$ioenr().set_bit());
+                    ahb.rstr().modify(|_, w| w.$iorst().set_bit());
+                    ahb.rstr().modify(|_, w| w.$iorst().clear_bit());
+
                     Parts {
                         regs: Registers{_0:()},
                         $(
@@ -511,6 +517,8 @@ gpio_def!(
     gpioa,
     gpioa,
     PA,
+    gpioaen,
+    gpioarst,
     [
         (PA0, pa0, 0, afrl),
         (PA1, pa1, 1, afrl),
@@ -536,6 +544,8 @@ gpio_def!(
     gpiob,
     gpiob,
     PB,
+    gpioben,
+    gpiobrst,
     [
         (PB0, pb0, 0, afrl),
         (PB1, pb1, 1, afrl),
@@ -561,6 +571,8 @@ gpio_def!(
     gpioc,
     gpiok,
     PC,
+    gpiocen,
+    gpiocrst,
     [
         (PC0, pc0, 0, afrl),
         (PC1, pc1, 1, afrl),
@@ -586,6 +598,8 @@ gpio_def!(
     gpiod,
     gpiok,
     PD,
+    gpioden,
+    gpiodrst,
     [
         (PD0, pd0, 0, afrl),
         (PD1, pd1, 1, afrl),
@@ -611,6 +625,8 @@ gpio_def!(
     gpioe,
     gpiok,
     PE,
+    gpioeen,
+    gpioerst,
     [
         (PE0, pe0, 0, afrl),
         (PE1, pe1, 1, afrl),
@@ -636,6 +652,8 @@ gpio_def!(
     gpiof,
     gpiok,
     PF,
+    gpiofen,
+    gpiofrst,
     [
         (PF0, pf0, 0, afrl),
         (PF1, pf1, 1, afrl),
@@ -661,6 +679,8 @@ gpio_def!(
     gpiog,
     gpiok,
     PG,
+    gpiogen,
+    gpiogrst,
     [
         (PG0, pg0, 0, afrl),
         (PG1, pg1, 1, afrl),
@@ -686,6 +706,8 @@ gpio_def!(
     gpioh,
     gpiok,
     PH,
+    gpiohen,
+    gpiohrst,
     [
         (PH0, ph0, 0, afrl),
         (PH1, ph1, 1, afrl),
@@ -711,6 +733,8 @@ gpio_def!(
     gpioi,
     gpiok,
     PI,
+    gpioien,
+    gpioirst,
     [
         (PI0, pi0, 0, afrl),
         (PI1, pi1, 1, afrl),
@@ -736,6 +760,8 @@ gpio_def!(
     gpioj,
     gpiok,
     PJ,
+    gpiojen,
+    gpiojrst,
     [
         (PJ0, pj0, 0, afrl),
         (PJ1, pj1, 1, afrl),
@@ -761,6 +787,8 @@ gpio_def!(
     gpiok,
     gpiok,
     PK,
+    gpioken,
+    gpiokrst,
     [
         (PK0, pk0, 0, afrl),
         (PK1, pk1, 1, afrl),
