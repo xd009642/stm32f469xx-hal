@@ -95,11 +95,18 @@ impl APB2 {
     }
 }
 
+/// HSI in Hertz
+const HSI: u32 = 16_000_000;
+/// LSI in Hertz
+const LSI: u32 = 32_000;
+
 /// RCC Clock configuration
 /// By setting desired frequencies for each clock the function freeze then
 /// sets these frequencies as best as possible. (Can't take into account
 /// external clock sources)
 pub struct CFGR {
+    /// The frequency of the external high speed oscillator
+    hse: Option<u32>,
     hclk: Option<u32>,
     pclk1: Option<u32>,
     pclk2: Option<u32>,
@@ -110,6 +117,17 @@ pub struct CFGR {
 }
 
 impl CFGR {
+    pub fn hse<F>(mut self, freq: F) -> Self 
+    where
+        F: Into<Hertz>, 
+    {
+        let freq = freq.into().0;
+        // Frequency range of HSE
+        assert!(freq>=4_000_000 && freq <= 26_000_000);
+        self.hse = Some(freq);
+        self
+    }
+
     pub fn hclk<F>(mut self, freq: F) -> Self
     where
         F: Into<Hertz>,
