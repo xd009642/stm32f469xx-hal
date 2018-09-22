@@ -4,6 +4,6 @@ extern crate embedded_hal as hal;
 extern crate nb;
 pub extern crate stm32f469xx;
 
-pub mod rcc;
 pub mod gpio;
-
+pub mod rcc;
+pub mod time;

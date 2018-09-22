@@ -153,10 +153,10 @@ macro_rules! gpio_def {
                         // Set lock bit. Port is now unlocked
                         (*$GPIO::ptr()).lckr.modify(|r, w| w.bits(r.bits() | (1<<16)));
                     }
-                    self.pin 
+                    self.pin
                 }
             }
-            
+
             impl<PIN> OutputPin for LockedPin<PIN> where PIN:OutputPin {
                 /// Sets the pin output to high. If the pin is set high and low at the same time
                 /// the high value will have precedence.
@@ -180,7 +180,7 @@ macro_rules! gpio_def {
                     self.pin.is_set_low()
                 }
             }
-            
+
             #[cfg(feature = "unproven")]
             impl<PIN> InputPin for LockedPin<PIN> where PIN:InputPin {
                 fn is_high(&self) -> bool {
@@ -210,7 +210,7 @@ macro_rules! gpio_def {
                     unsafe { (*$GPIO::ptr()).bsrr.write(|w| w.bits(1<<(self.i + 16))); }
                 }
             }
-            
+
             #[cfg(feature = "unproven")]
             impl<MODE> StatefulOutputPin for $PX<DigitalInput<MODE>> {
                 /// Returns true if the output pin is high.
@@ -221,7 +221,7 @@ macro_rules! gpio_def {
                 fn is_set_low(&self) -> bool {
                     unsafe {(*$GPIO::ptr()).odr.read().bits() & (1 << self.i) == 0 }
                 }
-            
+
             }
 
             #[cfg(feature = "unproven")]
@@ -317,7 +317,7 @@ macro_rules! gpio_def {
                         }
                         LockedPin {
                             i: $i,
-                            pin: self 
+                            pin: self
                         }
                     }
 
