@@ -99,6 +99,9 @@ impl APB2 {
 const HSI: u32 = 16_000_000;
 /// LSI in Hertz
 const LSI: u32 = 32_000;
+/// Default LSE frequency in Hertz
+const LSE: u32 = 32_768;
+
 
 /// RCC Clock configuration
 /// By setting desired frequencies for each clock the function freeze then
