@@ -13,6 +13,17 @@ impl RccExt for RCC {
             ahb3: AHB3 { _0: () },
             apb1: APB1 { _0: () },
             apb2: APB2 { _0: () },
+            cfgr: CFGR {
+               hse: None,
+               has_lse: false,
+               hclk: None,
+               pclk1: None,
+               pclk2: None,
+               sysclk: None,
+               rtcclk: None,
+               mco1: None,
+               mco2: None,
+            },
         }
     }
 }
@@ -23,6 +34,7 @@ pub struct Rcc {
     pub ahb3: AHB3,
     pub apb1: APB1,
     pub apb2: APB2,
+    pub cfgr: CFGR,
 }
 
 pub struct AHB1 {
@@ -110,6 +122,7 @@ const LSE: u32 = 32_768;
 pub struct CFGR {
     /// The frequency of the external high speed oscillator
     hse: Option<u32>,
+    has_lse: bool,
     hclk: Option<u32>,
     pclk1: Option<u32>,
     pclk2: Option<u32>,
@@ -187,8 +200,17 @@ impl CFGR {
         self
     }
 
+    /// Freezes the clock configuration making it effective
+    /// It will attempt to match the requested frequencies as closely as 
+    /// possible. Actual frequencies will be returned in the `Clocks` struct
     pub fn freeze(self) -> Clocks {
-        unimplemented!();
+        // Prioritise SYSCLK 
+
+        let rcc = unsafe { &*RCC::ptr() };
+        rcc.cfgr.write(|w| unsafe {
+            w.i2ssrc()
+                .clear_bits()
+        });
     }
 }
 
